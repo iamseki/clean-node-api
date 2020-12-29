@@ -1,14 +1,31 @@
 import { SignUpController } from './signup'
 import { MissingParamError } from '../errors/missing-param-error'
+import { InvalidParamError } from '../errors/invalid-param-error'
+import { EmailValidator } from '../protocols/email-validator'
 
+interface SutTypes {
+  sut: SignUpController
+  emailValidatorStub: EmailValidator
+}
 // return system under test object
-const makeSut = (): SignUpController => {
-  return new SignUpController()
+const makeSut = (): SutTypes => {
+  // tiny code class that simulates some functionality to test dependencies
+  class EmailValidatorStub implements EmailValidator {
+    isValid (email: string): boolean {
+      return true
+    }
+  }
+  const emailValidatorStub = new EmailValidatorStub()
+  const sut = new SignUpController(emailValidatorStub)
+  return {
+    sut,
+    emailValidatorStub
+  }
 }
 
 describe('SignUp', () => {
   test('Should return 400 if name is not provided', () => {
-    const sut = makeSut()
+    const { sut } = makeSut()
     const httpRequest = {
       body: {
         email: 'any@email.com',
@@ -23,7 +40,7 @@ describe('SignUp', () => {
   })
 
   test('Should return 400 if email is not provided', () => {
-    const sut = makeSut()
+    const { sut } = makeSut()
     const httpRequest = {
       body: {
         name: 'any',
@@ -38,7 +55,7 @@ describe('SignUp', () => {
   })
 
   test('Should return 400 if password is not provided', () => {
-    const sut = makeSut()
+    const { sut } = makeSut()
     const httpRequest = {
       body: {
         name: 'any',
@@ -53,7 +70,7 @@ describe('SignUp', () => {
   })
 
   test('Should return 400 if passwordConfirmation is not provided', () => {
-    const sut = makeSut()
+    const { sut } = makeSut()
     const httpRequest = {
       body: {
         name: 'any',
@@ -65,5 +82,40 @@ describe('SignUp', () => {
 
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new MissingParamError('passwordConfirmation'))
+  })
+
+  test('Should return 400 if invalid email is provided', () => {
+    const { emailValidatorStub, sut } = makeSut()
+    // emailValidator is true by default but for this test with jest.spyOn we change the returned value !
+    // good practice to test dependecies always create the stub to pass on the test and just mock the necessary change
+    jest.spyOn(emailValidatorStub, 'isValid').mockReturnValueOnce(false)
+    const httpRequest = {
+      body: {
+        name: 'any',
+        email: 'invalid_email@any.com',
+        password: 'any-pass',
+        passwordConfirmation: 'any-pass'
+      }
+    }
+    const httpResponse = sut.handle(httpRequest)
+    expect(httpResponse.statusCode).toBe(400)
+    expect(httpResponse.body).toEqual(new InvalidParamError('email'))
+  })
+
+  test('Should call EmailValidator with correct email', () => {
+    const { emailValidatorStub, sut } = makeSut()
+
+    const isValidSpy = jest.spyOn(emailValidatorStub, 'isValid')
+
+    const httpRequest = {
+      body: {
+        name: 'any',
+        email: 'invalid_email@any.com',
+        password: 'any-pass',
+        passwordConfirmation: 'any-pass'
+      }
+    }
+    sut.handle(httpRequest)
+    expect(isValidSpy).toHaveBeenCalledWith('invalid_email@any.com')
   })
 })
