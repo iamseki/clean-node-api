@@ -86,6 +86,22 @@ describe('SignUp', () => {
     expect(httpResponse.body).toEqual(new MissingParamError('passwordConfirmation'))
   })
 
+  test('Should return 400 if passwordConfirmation fails', () => {
+    const { sut } = makeSut()
+    const httpRequest = {
+      body: {
+        name: 'any',
+        email: 'any@any.com',
+        password: 'any-pass',
+        passwordConfirmation: 'invalid'
+      }
+    }
+    const httpResponse = sut.handle(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(400)
+    expect(httpResponse.body).toEqual(new InvalidParamError('passwordConfirmation'))
+  })
+
   test('Should return 400 if invalid email is provided', () => {
     const { emailValidatorStub, sut } = makeSut()
     // emailValidator is true by default but for this test with jest.spyOn we change the returned value !
