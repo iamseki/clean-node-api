@@ -17,6 +17,11 @@ class MongoHelper {
   getCollection(name: string): Collection {
     return this.client.db().collection(name)
   }
+
+  map<T>(data: any): T {
+    const { _id, ...documentWithoutId } = data
+    return Object.assign({}, documentWithoutId, { id: _id })
+  }
 }
 
 export default new MongoHelper()
