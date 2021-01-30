@@ -150,7 +150,7 @@ describe('SignUp', () => {
     })
     const httpRequest = makeFakeRequest()
     const httpResponse = await sut.handle(httpRequest)
-    expect(httpResponse).toEqual(serverError(new ServerError(error.stack as string)))
+    expect(httpResponse).toEqual(serverError(new ServerError(error.stack)))
   })
 
   test('Should call AddAccount with correct values', async () => {
@@ -177,7 +177,7 @@ describe('SignUp', () => {
     })
     const httpRequest = makeFakeRequest()
     const httpResponse = await sut.handle(httpRequest)
-    expect(httpResponse).toEqual(serverError(new ServerError(error.stack as string)))
+    expect(httpResponse).toEqual(serverError(new ServerError(error.stack)))
   })
 
   test('Should return 200 if valid data is provided', async () => {
