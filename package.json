@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "sucrase-node src/main/server.ts",
+    "start": "node dist/main/server.js",
+    "start:dev": "sucrase-node src/main/server.ts",
+    "build": "rimraf dist && tsc",
     "test:verbose": "jest --passWithNoTests --runInBand",
     "test": "jest --passWithNoTests --silent",
     "test:unit": "npm test -- --watch -c jest-unit-config.js",
@@ -46,5 +48,8 @@
     "fast-glob": "^3.2.4",
     "mongodb": "^3.6.3",
     "validator": "^13.5.2"
+  },
+  "_moduleAliases": {
+    "@": "dist"
   }
 }
